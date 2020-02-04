@@ -1,5 +1,5 @@
 {
-  "name": "basic-node-addon",
+  "name": "@4t4nner/silence-detector",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,8 +10,8 @@
     "build:dev": "node-gyp build --debug",
     "clean": "node-gyp clean"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "4t4nner",
+  "license": "MIT",
   "devDependencies": {
     "node-gyp": "^6.1.0"
   },

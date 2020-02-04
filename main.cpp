@@ -6,4 +6,4 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
   return test::Init(env, exports);
 }
 
-NODE_API_MODULE(testaddon, InitAll)
+NODE_API_MODULE(detector_addon, InitAll)
