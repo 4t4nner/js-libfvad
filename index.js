@@ -10,4 +10,4 @@ function detectSilence(fileName){
     return {silence,outFile}
 }
 
-module.exports = detector_addon;
+module.exports = {detectSilence};
