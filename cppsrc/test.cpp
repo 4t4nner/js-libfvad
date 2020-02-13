@@ -145,12 +145,12 @@ static bool parse_int(int *dest, const char *s, int min, int max)
     }
 }
 
-detectorRet detector(const char *fileName,int mode=2){
+detectorRet detector(const char *fileName,DetectorParams dp){
     const char *in_fname, *out_fname[2] = {NULL, NULL};
     SNDFILE *in_sf = NULL, *out_sf[2] = {NULL, NULL};
     SF_INFO in_info = {0}, out_info[2];
     FILE *list_file = NULL;
-    int frame_ms = 10;
+    int frame_ms = dp.frame_ms;
     Fvad *vad = NULL;
     std::string error;
     detectorRet ret;
@@ -166,13 +166,12 @@ detectorRet detector(const char *fileName,int mode=2){
         goto fail;
     }
 
-    fvad_set_mode(vad, mode);
-    frame_ms = 30;
+    fvad_set_mode(vad, dp.mode);
     out_fname[1];
 
     in_info.format   = SF_FORMAT_RAW | SF_FORMAT_PCM_16 | SF_ENDIAN_LITTLE;
     in_info.channels = 1;
-    in_info.samplerate = 8000;
+    in_info.samplerate = dp.sampleRate;
 
 
     in_sf = sf_open(fileName, SFM_READ, &in_info);
@@ -232,29 +231,38 @@ end:
     return ret;
 }
 
-std::string test::hello()
-{
-    return "Hello World123";
-}
-
 Napi::Object test::detectorWrapper(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     Napi::Object ret = Napi::Object::New(env);
     
-    if(info.Length() != 1){
-        Napi::TypeError::New(env, "should be one arg - string fileName").ThrowAsJavaScriptException();
-        return ret;
-    }
+    // if(info.Length() != 2){
+    //     Napi::TypeError::New(env, "should be 2 args - string fileName and options Object").ThrowAsJavaScriptException();
+    //     return ret;
+    // }
 
-    string fileName = info[0].As<Napi::String>().Utf8Value();
-    detectorRet dr = detector(fileName.c_str());
+    // string fileName = info[0].As<Napi::String>().Utf8Value();
+    // Napi::Object options = info[1].As<Napi::Object>();
 
-    ret.Set("error",dr.error);
-    ret.Set("outFile",dr.outFile);
-    ret.Set("silence",dr.silence);
+    // int mode = options.Get('mode').As<Napi::Number>().Int32Value();
+    // int sampleRate = options.Get('sampleRate').As<Napi::Number>().Int32Value();
+    // int frameMs = options.Get('frameMs').As<Napi::Number>().Int32Value();
 
-    return ret;
+    // DetectorParams dp = {
+    //     .mode = mode,
+    //     .sampleRate = sampleRate,
+    //     .frame_ms = frameMs,
+    // };
+
+
+    // detectorRet dr = detector(fileName.c_str(),dp);
+
+    // ret.Set("error",dr.error);
+    // ret.Set("outFile",dr.outFile);
+    // ret.Set("silence",dr.silence);
+
+    // return ret;
+    
 }
 
 Napi::Object test::Init(Napi::Env env, Napi::Object exports)

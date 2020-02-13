@@ -1,12 +1,13 @@
 {
   "name": "@4t4nner/silence-detector",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "index.js",
   "gypfile": true,
   "scripts": {
-    "start": "node index.js",
+    "test": "node example.js",
     "rebuild:dev": "node-gyp rebuild --debug",
+    "rebuild": "node-gyp rebuild",
     "build:dev": "node-gyp build --debug",
     "clean": "node-gyp clean"
   },

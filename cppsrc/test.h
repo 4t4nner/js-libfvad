@@ -2,7 +2,6 @@
 
 namespace test
 {
-std::string hello();
 Napi::Object detectorWrapper(const Napi::CallbackInfo &info);
 Napi::Object Init(Napi::Env env, Napi::Object exports);
 
@@ -13,3 +12,10 @@ struct detectorRet
     bool silence;
 };
 } // namespace test
+
+struct DetectorParams
+{
+    int mode;
+    int sampleRate;
+    int frame_ms;
+};
