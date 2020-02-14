@@ -12,6 +12,8 @@
 #include <napi.h>
 #include <iostream>
 
+#define DEBUG=1;
+
 using namespace std;
 using namespace test;
 
@@ -20,7 +22,12 @@ struct BufFrame
     size_t len;
     int frame_ms;
     int cnt;
+    int silence_max_ms;
 };
+
+void coutError(string e){
+    cout << "error: " << e << endl;
+}
 
 std::tuple<SNDFILE *,string> openOutTmpFile(int samplerate = 8000){
 
@@ -55,14 +62,16 @@ static detectorRet process_sf(
     long frames[2] = {0, 0};
     long segments[2] = {0, 0};
     int cntUnvoiced = 0;
-    int silenceFrameMax = 400/buf_info.frame_ms;
+    int silenceFrameMax = buf_info.silence_max_ms/buf_info.frame_ms;
     double *voiceBuf = (double *) malloc(buf_info.cnt * framelen * (sizeof buf0));
     int voiceBufLength = 0;
     detectorRet ret = {.error="",.outFile="",.silence=false};
+    uint64_t time = 0;
 
     if (framelen > SIZE_MAX / sizeof(double) || !(buf0 = (double *)malloc(framelen * sizeof *buf0)) || !(buf1 = (int16_t *)malloc(framelen * sizeof *buf1)))
     {
         ret.error = "failed to allocate buffers\n";
+        coutError(ret.error);
         goto end;
     }
 
@@ -75,6 +84,7 @@ static detectorRet process_sf(
 
         vadres = fvad_process(vad, buf1, framelen);
         if (vadres < 0) {
+            coutError(ret.error);
             ret.error = "VAD processing failed\n";
             goto end;
         }
@@ -98,6 +108,7 @@ static detectorRet process_sf(
                 // sf_write_double(outfiles[1], buf0, framelen);
             }
             if(cntUnvoiced >= silenceFrameMax){
+                ret.time_silence = (double)time/1000;
                 ret.silence = true;
             }
         }
@@ -105,6 +116,7 @@ static detectorRet process_sf(
         frames[vadres]++;
         if (prev != vadres) segments[vadres]++;
         prev = vadres;
+        time += buf_info.frame_ms;
     }
 
     // printf("voice detected in %ld of %ld frames (%.2f%%)\n",
@@ -144,6 +156,7 @@ static bool parse_int(int *dest, const char *s, int min, int max)
     }
 }
 
+
 detectorRet detector(const char *fileName,DetectorParams dp){
     const char *in_fname, *out_fname[2] = {NULL, NULL};
     SNDFILE *in_sf = NULL, *out_sf[2] = {NULL, NULL};
@@ -162,6 +175,7 @@ detectorRet detector(const char *fileName,DetectorParams dp){
     vad = fvad_new();
     if (!vad) {
         ret.error = "!vad - out of memory\n";
+        coutError(ret.error);
         goto fail;
     }
 
@@ -178,6 +192,9 @@ detectorRet detector(const char *fileName,DetectorParams dp){
         const char * t = sf_strerror(NULL);
         string t1 = string(t);
         ret.error = (boost::format("Cannot open input file '%s': %s\n") % (in_fname, sf_strerror(NULL))).str();
+
+        coutError(ret.error);
+        coutError(t);
         goto fail;
     }
 
@@ -187,8 +204,9 @@ detectorRet detector(const char *fileName,DetectorParams dp){
         goto fail;
     }
     if (fvad_set_sample_rate(vad, in_info.samplerate) < 0) {
-        error = (boost::format("invalid sample rate: %d Hz\n") % (in_info.samplerate)).str();
+        ret.error = (boost::format("invalid sample rate: %d Hz\n") % (in_info.samplerate)).str();
 
+        coutError(ret.error);
         goto fail;
     }
 
@@ -198,6 +216,7 @@ detectorRet detector(const char *fileName,DetectorParams dp){
         .len = framelen,
         .frame_ms = frame_ms,
         .cnt = in_info.frames,
+        .silence_max_ms = dp.silence_max_ms,
     };
     /*
      * run main loop
@@ -250,12 +269,14 @@ Napi::Object test::detectorWrapper(const Napi::CallbackInfo &info)
             .mode = options.Get("mode").ToNumber().Int32Value(),
             .sampleRate = options.Get("sampleRate").ToNumber().Int32Value(),
             .frame_ms = options.Get("frameMs").ToNumber().Int32Value(),
+            .silence_max_ms = options.Get("silenceMaxMs").ToNumber().Int32Value(),
         };
 
         detectorRet dr = detector(fileName.c_str(),dp);
 
         ret.Set("error",dr.error);
         ret.Set("outFile",dr.outFile);
+        ret.Set("timeSilence",dr.time_silence);
         ret.Set("silence",dr.silence);
     } catch (exception e){
         Napi::TypeError::New(env, "should be 2 args - string fileName and options Object").ThrowAsJavaScriptException();
