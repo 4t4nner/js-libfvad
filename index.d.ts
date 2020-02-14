@@ -1,8 +1,8 @@
 type detectorOptions = {
-        frameMs?: number = 30,
-        sampleRate?: number = 8000,
-        mode?: number = 3,
-        silenceMaxMs?: number = 400,
+        frameMs?: number | 30,
+        sampleRate?: number | 8000,
+        mode?: number | 3,
+        silenceMaxMs?: number | 400,
 }
 
 /**
