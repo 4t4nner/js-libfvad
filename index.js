@@ -1,5 +1,5 @@
-const detector_addon = require('./build/Debug/detector_addon.node');
-// const detector_addon = require('./build/Release/detector_addon.node');
+// const detector_addon = require('./build/Debug/detector_addon.node');
+const detector_addon = require('bindings')('detector_addon'); // ./build/Release/detector_addon.node
 
 function detectSilence(fileName,options = {}){
     let newOptions = {

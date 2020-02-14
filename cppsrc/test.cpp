@@ -12,7 +12,6 @@
 #include <napi.h>
 #include <iostream>
 
-
 using namespace std;
 using namespace test;
 
@@ -236,32 +235,33 @@ Napi::Object test::detectorWrapper(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
     Napi::Object ret = Napi::Object::New(env);
     
-    // if(info.Length() != 2){
-    //     Napi::TypeError::New(env, "should be 2 args - string fileName and options Object").ThrowAsJavaScriptException();
-    //     return ret;
-    // }
+    if(info.Length() != 2){
+        Napi::TypeError::New(env, "should be 2 args - string fileName and options Object").ThrowAsJavaScriptException();
+        return ret;
+    }
+    int mode,mode1,frameMs,sampleRate,sampleRate1;
+    bool t;
+    try{
+    
+        string fileName = info[0].As<Napi::String>().Utf8Value();
+        Napi::Object options = info[1].ToObject();
+        
+        DetectorParams dp = {
+            .mode = options.Get("mode").ToNumber().Int32Value(),
+            .sampleRate = options.Get("sampleRate").ToNumber().Int32Value(),
+            .frame_ms = options.Get("frameMs").ToNumber().Int32Value(),
+        };
 
-    // string fileName = info[0].As<Napi::String>().Utf8Value();
-    // Napi::Object options = info[1].As<Napi::Object>();
+        detectorRet dr = detector(fileName.c_str(),dp);
 
-    // int mode = options.Get('mode').As<Napi::Number>().Int32Value();
-    // int sampleRate = options.Get('sampleRate').As<Napi::Number>().Int32Value();
-    // int frameMs = options.Get('frameMs').As<Napi::Number>().Int32Value();
+        ret.Set("error",dr.error);
+        ret.Set("outFile",dr.outFile);
+        ret.Set("silence",dr.silence);
+    } catch (exception e){
+        Napi::TypeError::New(env, "should be 2 args - string fileName and options Object").ThrowAsJavaScriptException();
+    }
 
-    // DetectorParams dp = {
-    //     .mode = mode,
-    //     .sampleRate = sampleRate,
-    //     .frame_ms = frameMs,
-    // };
-
-
-    // detectorRet dr = detector(fileName.c_str(),dp);
-
-    // ret.Set("error",dr.error);
-    // ret.Set("outFile",dr.outFile);
-    // ret.Set("silence",dr.silence);
-
-    // return ret;
+    return ret;
     
 }
 

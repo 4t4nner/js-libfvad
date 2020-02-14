@@ -1,8 +1,10 @@
 {
     "targets": [{
         "target_name": "detector_addon",
+        "cflags": [ '-std=c++17' ],
         "cflags!": [ "-fno-exceptions" ],
         "cflags_cc!": [ "-fno-exceptions" ],
+        "cflags_cc": ['-std=c++17' ],
         "sources": [
             "main.cpp",
             "cppsrc/test.cpp",

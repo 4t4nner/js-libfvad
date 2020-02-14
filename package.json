@@ -8,7 +8,7 @@
     "test": "node example.js",
     "rebuild:dev": "node-gyp rebuild --debug",
     "rebuild": "node-gyp rebuild",
-    "build:dev": "node-gyp build --debug",
+    "build:dev": "node-gyp build",
     "clean": "node-gyp clean"
   },
   "author": "4t4nner",
@@ -17,6 +17,7 @@
     "node-gyp": "^6.1.0"
   },
   "dependencies": {
+    "bindings": "^1.5.0",
     "node-addon-api": "^2.0.0"
   }
 }
